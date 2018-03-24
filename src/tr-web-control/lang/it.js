@@ -29,7 +29,7 @@ system.lang = {
 		,"remove-data":"Rimuovi i dati"
 		,"add-torrent":"Aggiungi Torrent"
 		,"attribute":"Attributi"
-		,"alt-speed":"Velocita alternativa"
+		,"alt-speed":"Velocità alternativa"
 		,"system-config":"Configurazione"
 		,"system-reload":"Ricarica"
 		,"about":"Circa"
@@ -42,8 +42,8 @@ system.lang = {
 		,"tip":{
 			"start":"Avvia il torrent selezionato"
 			,"pause":"Pausa il torrent selezionato"
-			,"recheck":"Re il torrent selezionato"
-			,"recheck-confirm":"You sure you want to re-check the selected torrents? This may take some time!"
+			,"recheck":"Ricontrolla il torrent selezionato"
+			,"recheck-confirm":"Sei sicuro di voler ricontrollare i torrent selezionati? Questa operazione potrebbe metterci un po'!"
 			,"start-all":"Avvia tutti"
 			,"pause-all":"Pausa tutti"
 			,"remove":"Rimuovi"
@@ -53,8 +53,8 @@ system.lang = {
 			,"attribute":"Attributi"
 			,"alt-speed":"Velocita alternativa"
 			,"system-config":"Configurazione"
-			,"system-reload":"Ricarica"
-			,"about":"Circa questa app"
+			,"system-reload":"Aggiorna"
+			,"about":"Riguardo questa app"
 			,"autoreload-disabled":"Disabilita l'auto aggiornamento"
 			,"autoreload-enabled":"Abilita l'auto aggiornamento"
 			,"tracker-replace":"Sostituisci i tracker"
@@ -74,27 +74,27 @@ system.lang = {
 		"all":"Tutti"
 		,"active":"Attivi"
 		,"paused":"In Pausa"
-		,"downloading":"Downloading"
-		,"sending":"Sending"
+		,"downloading":"Download in Corso"
+		,"sending":"In Seed"
 		,"error":"Con Errori"
-		,"warning":"Con Warning"
+		,"warning":"Con Avvisi"
 		,"actively":"Attivi"
 		,"check":"In Check"
-		,"wait":"Aspettando"
+		,"wait":"In attesa"
 		,"search-result":"Risultati della Ricerca"
 		,"status":{
-			"loading":"Caricando..."
+			"loading":"Caricamento in corso..."
 		}
 		,"statistics":"Statistiche"
 		,"statistics":{
 			"title":"Statistiche"
-			,"cumulative":"Cumulative"
-			,"current":"Corrente"
+			,"cumulative":"Complessive"
+			,"current":"Sessione corrente"
 			,"uploadedBytes":"Byte Inviati: "
 			,"downloadedBytes":"Byte Ricevuti: "
 			,"filesAdded":"File Aggiunti: "   
 			,"sessionCount":"Conto delle Sessioni: " 
-			,"secondsActive":"Secondi di Attivita: "
+			,"secondsActive":"Tempo di attività: "
 		}
 		,"servers":"Trackers"
 		,"folders":"Cartelle"
@@ -105,15 +105,15 @@ system.lang = {
 		}
 	} 
 	,"statusbar":{
-		"downloadspeed":"Velocita di Download:"
-		,"uploadspeed":"Velocita di Upload:"
+		"downloadspeed":"Velocità di Download:"
+		,"uploadspeed":"Velocità di Upload:"
 		,"version":"Versione:"
 	}
 	,"dialog":{
 		"torrent-add":{
 			"download-dir":"Cartella di Download:"
 			,"torrent-url":"Torrent URL:"
-			,"tip-torrent-url":"E' possibile inserire più URL separati da 'Invio'"
+			,"tip-torrent-url":"È possibile inserire più URL separati da 'Invio'"
 			,"autostart":"Avvia automaticamente:"
 			,"tip-autostart":""
 			,"set-default-download-dir":"Imposta come cartella di default"
@@ -127,7 +127,7 @@ system.lang = {
 				"base":"Base"
 				,"network":"Rete"
 				,"limit":"Limiti"
-				,"alt-speed":"Schedulazione"
+				,"alt-speed":"Programmazione"
 			}
 			,"config-dir":"Cartella con i file di configurazione di Transmission:"
 			,"download-dir":"Cartella di download di default:"
@@ -139,18 +139,18 @@ system.lang = {
 			,"download-queue-enabled":"Abilita la coda di download, numero di file in coda:"
 			,"seed-queue-enabled":"Abilita la coda di seed, numero di file in coda:"
 			,"peer-port-random-on-start":"Usa una porta casuale"
-			,"port-forwarding-enabled":"Abilita il forwarding"
+			,"port-forwarding-enabled":"Abilita port forwarding"
 			,"test-port":"Testa la porta"
 			,"port-is-open-true":"La porta è aperta"
 			,"port-is-open-false":"La porta è chiusa"
 			,"testing":"Verifico..."
-			,"encryption":"Encryption:"
+			,"encryption":"Crittografia:"
 			,"encryption-type":{
 				"required":"Richiesta"
 				,"preferred":"Preferita"
 				,"tolerated":"Tollerata"
 			}
-			,"utp-enabled":"Abilita uTP(UPnP)"
+			,"utp-enabled":"Abilita µTP (UPnP)"
 			,"dht-enabled":"Abilita DHT"
 			,"lpd-enabled":"Abilita LPD"
 			,"pex-enabled":"Abilita PEX"
@@ -161,7 +161,7 @@ system.lang = {
 			,"alt-speed-enabled":"Usa le velocità alternative"
 			,"alt-speed-down":"Velocità massima di download:"
 			,"alt-speed-up":"Velocità massima di upload:"
-			,"alt-speed-time-enabled":"Usa la schedulazione"
+			,"alt-speed-time-enabled":"Usa la programmazione"
 			,"alt-speed-time":"Orario"
 			,"weekday":{
 				"1":"Lunedì"
@@ -173,7 +173,7 @@ system.lang = {
 				,"0":"Domenica"
 			}
 			,"blocklist-enabled":"Usa la blocklist"
-			,"seedRatioLimited":"La ratio di upload per i torrent:"
+			,"seedRatioLimited":"Rapporto di condivisone predefinito per i torrent:"
 			,"queue-stalled-enabled":"Considera i torrent inattivi come fermi:"
 			,"idle-seeding-limit-enabled":"I Torrent in seeding verranno bloccati se fermi per:"
 			,"minuets":"Minuti"
@@ -182,13 +182,13 @@ system.lang = {
 		}
 		,"public":{
 			"button-ok":"OK"
-			,"button-cancel":"Cancel"
+			,"button-cancel":"Annulla"
 			,"button-reload":"Ricarica"
 			,"button-save":"Salva"
 			,"button-close":"Chiudi"
 		}
 		,"about":{
-			"infos":"Autore: culturist<br/>Nota:Molte delle icone usate in questo programma sono prese dalla rete, se una di questa è di vostra proprietà, contattatemi e provvederò a rimuoverle."
+			"infos":"Autore: culturist<br/>Nota: Molte delle icone usate in questo programma sono prese dalla rete, se una di questa è di vostra proprietà, contattatemi e provvederò a rimuoverle."
 		}
 		,"torrent-remove":{
 			"title":"Conferma la rimozione"
@@ -278,7 +278,7 @@ system.lang = {
 				,"false":"Falso"
 			}
 			,"priority":{
-				"0":"Normal"
+				"0":"Normale"
 				,"1":"Alta"
 				,"-1":"Bassa"
 			}

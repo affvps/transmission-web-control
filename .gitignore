@@ -1,2 +1,8 @@
-_SYNCAPP/metadata.xml
-src/tr-web-control/sftp-config.json
+*.tmp
+*.bkp
+*.vscode
+*.bat
+node_modules
+package.json
+Gruntfile.js
+.DS_Store

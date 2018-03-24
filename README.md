@@ -1,24 +1,24 @@
-### 求助 ###
-因个人原因，已无更多精力维护该项目，导致项目基本处于停止状态，现希望有人帮忙继续更新该项目，如有意向者请和我联系，谢谢！
 
-### Please help this project ###
-For personal reasons, has no more effort to maintain the project, leading to the basic state of the project is stopped, I hope someone help to continue to update the project, if interested, please contact me, thank you!
+## [English Introduction](#introduction)
 
-Email: ronggang.zhou at gmail.com
-
-栽培者 2016.10.11
-
+### 目前项目已恢复正常维护，感谢 @DarkAlexWang 支持 :)
 -----
 关于
 -----
 本项目主要目的是想加强[Transmission](https://www.transmissionbt.com/) Web的操作能力，本项目原本在[Google Code](https://code.google.com/p/transmission-control/)托管，现迁移至GitHub。
 本项目设计之初仅针对PT站，因此增加了 Tracker 服务器分组及状态，但这不并适用于普通BT种子。
 
-#### [English Introduction](#introduction)
+另外，本项目仅为一套自定义的WebUI，不能代替 Transmission 工作，用户需要自行安装 Transmission 后才可正常使，Transmission 安装方法请稳步至官网：https://www.transmissionbt.com/
 
-### 支持的Transmission版本(Support Transmission Version)
+因项目使用人数日渐增多，本人能力及时间有限，为保持项目持续更新，现已为本项目建立QQ群（群号：723130968 <a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=353d3f247de2b78c071e28a31777022424660c97c9fdd6f25640a4a51c6b9d65" ><img border="0" src="https://pub.idqqimg.com/wpa/images/group.png" alt="Transmission Web Control" title="Transmission Web Control (723130968)"></a>），欢迎各界朋友一起讨论，互帮互助。
+
+### 界面预览
+![tr-web-control](https://user-images.githubusercontent.com/8065899/32538836-0c2d970e-c42d-11e7-966d-84210bb41825.png)
+
+### 支持的Transmission版本
  - Transmission 2.40 及以上版本（RPC版本：14及以上）
- - Transmission 2.40 and above (RPC version: 14 and above)
+
+### [更新日志](https://github.com/ronggang/transmission-web-control/blob/master/CHANGELOG.md)
 
 ### 功能介绍
  - 在线查看Transmission当前工作情况；
@@ -31,62 +31,71 @@ Email: ronggang.zhou at gmail.com
  - 批量修改 Tracker；
  - 移动指定种子的数据存放目录；
  - 可按 Trackers 分组浏览；
+ - 增加对群晖 `Download Station` 的支持；By - @hitechbeijing
  - 其他……
 
 ### 浏览器支持
  - 所有支持HTML5的浏览器(Chrome 15.0.874，Firefox 8.0.1，IE 9.0.8112，Opera 11.52)
 
-### 下载列表
- - 可通过以下地址获取最新版的程序：
- - https://github.com/ronggang/transmission-web-control/raw/master/release/transmission-control-full.tar.gz
- - 或到下载安装脚本，此脚本只需要下载一次，以后只需要执行即可
- - https://github.com/ronggang/transmission-web-control/raw/master/release/tr-control-easy-install.sh
-
-### 安装方法
- - https://code.google.com/p/transmission-control/wiki/Install
+### 安装方法请参考 [Wiki](https://github.com/ronggang/transmission-web-control/wiki) 。
 
 ### 关于多语言(Multi-language)
-系统使用多语言的方式构建，所以可以支持其他任何语言；但，由于本人水平有限，只会中文，所以需要懂其他语言的您的帮助，如果您已经翻译好了一个语言版本，请同时发给我一份，我会打包在一起，分享给更多的用户，谢谢。
+系统使用多语言的方式构建，所以可以支持其他任何语言；但，由于本人水平有限，只会中文，所以需要懂其他语言的您的帮助，如果您已经翻译好了一个语言版本，欢迎提交 pull requests，我们会合并后分享给更多的用户，谢谢。
 
 #### 当前已支持的语言(Currently supported languages)：
- - `2013-04-22` [简体中文(Simplified Chinese)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-CN.js) @栽培者
- - `2014-02-09` [正體中文(Traditional Chinese)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-TW.js) @Sean
- - `2013-04-22` [英文(English)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/en.js) @栽培者
- - `2014-02-09` [俄语(Russian)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ru.js) @Oleksandr Gureiev & @irherder
- - `2013-04-17` [西班牙语(Spanish)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/es.js) @Adrián González
- - `2013-02-05` [波兰语(Polish)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pl.js) @Daniel Kolek
- - `2013-11-11` [匈牙利语(Hungarian)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/hu.js) @Swartzy
- - `2013-05-18` [罗马尼亚(Romanian)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ro.js) @Laurentiu Dinulescu
- - `2013-05-28` [意大利(Italian)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/it.js) @Daniele Buccilli
- - `2014-02-12` [葡萄牙语（巴西）(Brazilian Portuguese)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-BR.js) @Dudu Maroja & @pcgaldo
- - `2013-08-20` [荷兰语 (Dutch/Flemmisch)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/nl.js) @Alwin Hummels
- - `2013-09-12` [法语 (French)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/fr.js) @Amaury Aubry
- - `2013-12-05` [韩语 (Korean)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ko.js) @kdsz330
- - `2014-02-12` [葡萄牙语(European Portuguese)](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-PT.js) @pcgaldo
+||语言|合作者|最近更新|
+|-|-|-|-|
+|🇨🇳|[简体中文](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-CN.js)|栽培者, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/zh-CN.js)|
+|🇨🇳|[正體中文](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-TW.js) |Sean, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/zh-TW.js)|
+|🇬🇧|[英语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/en.js)|栽培者, ASAPHAANING, vodek3, DarkAlexWang|[2017-11-19](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/en.js)
+|🇷🇺|[俄语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ru.js)|Oleksandr Gureiev, irherder, Isseq, DarkAlexWang, vodek3|[2017-11-21](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/ru.js)
+|🇪🇸|[西班牙语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/es.js)|Adrián González, malkavi, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/es.js)
+|🇵🇱|[波兰语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pl.js)|Daniel Kolek, Piotr Kozica, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/pl.js)
+|🇭🇺|[匈牙利语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/hu.js)|Swartzy, Marcell, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/hu.js)
+|🇷🇴|[罗马尼亚](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ro.js)|Laurentiu Dinulescu, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/ro.js)
+|🇮🇹|[意大利](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/it.js)|Daniele Buccilli, vodek3, Oliver Cervera|[2018-02-15](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/it.js)
+|🇧🇷|[葡萄牙语（巴西）](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-BR.js)|Dudu Maroja, pcgaldo, vodek3, Brivaldo Junior, DarkAlexWang|[2017-09-29](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/pt-BR.js)
+|🇳🇱|[荷兰语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/nl.js)|Alwin Hummels, Jeroen, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/nl.js)
+|🇫🇷|[法语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/fr.js)|Amaury Aubry, ewan34500, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/fr.js)
+|🇰🇷|[韩语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ko.js)|kdsz330, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/ko.js)
+|🇵🇹|[葡萄牙语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-PT.js)|pcgaldo, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/pt-PT.js)
+|🇺🇦|[乌克兰语](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/uk.js)|Andrew, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/uk.js)
 
 
-Introduction
--------------------
-Transmission Web Control is a custom web UI. The project began in [Goolge Code](https://code.google.com/p/transmission-control/). 
+-----
+# Introduction
+Transmission Web Control is a custom web UI. The project began in [Google Code](https://code.google.com/p/transmission-control/). Welcome to give me any feedback or submit a Pull Request.
 
 ### Support Transmission Version
  - Transmission 2.40 and above (RPC version: 14 and above)
 
+### Fixed issues
+I will do my best to fix the issues in this repo.
+ - Updated the install tar file
+ - Fixed several typos in English interface
+ - Added http install script
+ - Added install.sh with English comments
+ - Updated easyui to 1.5.1 and jquery to 1.12.4 By -- @balonik
+ - Fixed issue #20, #21, #23, #39, #40, #43, #44 #53 By -- @balonik
+ - Replaced some Chinese comments to English
+ - Fixed issue #77，#81 (Please clear your cookies if you encounter any error) By -- @balonik
+ - Now the maximum number of torrents per page is 300，meanwhile, you can still modify the file config.js "pagination:true" to "pagination:false" in order to show ALL the torrents. By -- @balonik
+
 ### Features
  - Add torrent files or URLs
  - Drag-and-drop to add torrent files
- - Online modify the Transmission setting (Download folder,Speed ​​limit,Port,etc.)
+ - Modify Transmission settings online (Download folder, Speed limit, Port, etc.)
  - Pause / resume / recheck selected or all torrents
- - View the current torrents status (Files,Peers,Trackers,etc.)
- - View Statistics(Cumulative/Current)
- - The pagination torrents
+ - View the current torrents status (Files, Peers, Trackers etc.)
+ - View Statistics (Cumulative/Current)
+ - Pagination
  - Set files priority
  - Change the torrent download directory
  - Trackers list
- - ...
+ - Add support for `Synology NAS Download Station`; By - @hitechbeijing
 
 ### Browsers support
- - All browsers support HTML5. (Chrome 15.0.874，Firefox 8.0.1，IE 9.0.8112，Opera 11.52 etc.)
+ - A browser which supports HTML5. (Chrome 15.0.874，Firefox 8.0.1，IE 9.0.8112，Opera 11.52 etc.)
 
 ### Multi-language
 #### How to use the language pack:
@@ -96,30 +105,48 @@ Transmission Web Control is a custom web UI. The project began in [Goolge Code](
  - Regain access to the TR, if your browser's default configuration language "`_`languages.js" where it will automatically display the current language, if not, please manually select the language or the end of the page plus "?lang=language"; such as: 192.168.1.1/transmission/web/?lang=en
 
 #### Currently supported languages：
- - `2013-04-22` [Simplified Chinese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-CN.js) @ronggang
- - `2014-02-09` [Traditional Chinese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-TW.js) @Sean
- - `2013-04-22` [English](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/en.js) @ronggang
- - `2014-02-09` [Russian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ru.js) @Oleksandr Gureiev & @irherder
- - `2013-04-17` [Spanish](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/es.js) @Adrián González
- - `2013-02-05` [Polish](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pl.js) @Daniel Kolek
- - `2013-11-11` [Hungarian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/hu.js) @Swartzy
- - `2013-05-18` [Romanian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ro.js) @Laurentiu Dinulescu
- - `2013-05-28` [Italian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/it.js) @Daniele Buccilli
- - `2014-02-12` [Brazilian Portuguese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-BR.js) @Dudu Maroja & @pcgaldo
- - `2013-08-20` [Dutch/Flemmisch](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/nl.js) @Alwin Hummels
- - `2013-09-12` [French](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/fr.js) @Amaury Aubry
- - `2013-12-05` [Korean](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ko.js) @kdsz330
- - `2014-02-12` [European Portuguese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-PT.js) @pcgaldo
- - `2015-09-11` [Ukrainian](https://github.com/ronggang/transmission-web-control/blob/master/src/tr-web-control/lang/uk.js) @noreplyme
- - If you have translated a language pack, please upload it here issue 9
+||Language|Team|Update|
+|-|-|-|-|
+|🇨🇳|[Simplified Chinese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-CN.js)|ronggang, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/zh-CN.js)|
+|🇨🇳|[Traditional Chinese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/zh-TW.js) |Sean, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/zh-TW.js)|
+|🇬🇧|[English](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/en.js)|ronggang, ASAPHAANING, vodek3, DarkAlexWang|[2017-11-19](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/en.js)
+|🇷🇺|[Russian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ru.js)|Oleksandr Gureiev, irherder, Isseq, DarkAlexWang, vodek3|[2017-11-21](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/ru.js)
+|🇪🇸|[Spanish](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/es.js)|Adrián González, malkavi, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/es.js)
+|🇵🇱|[Polish](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pl.js)|Daniel Kolek, Piotr Kozica, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/pl.js)
+|🇭🇺|[Hungarian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/hu.js)|Swartzy, Marcell, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/hu.js)
+|🇷🇴|[Romanian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ro.js)|Laurentiu Dinulescu, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/ro.js)
+|🇮🇹|[Italian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/it.js)|Daniele Buccilli, vodek3, Oliver Cervera|[2018-02-15](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/it.js)
+|🇧🇷|[Brazilian Portuguese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-BR.js)|Dudu Maroja, pcgaldo, vodek3, Brivaldo Junior, DarkAlexWang|[2017-09-29](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/pt-BR.js)
+|🇳🇱|[Dutch/Flemmisch](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/nl.js)|Alwin Hummels, Jeroen, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/nl.js)
+|🇫🇷|[French](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/fr.js)|Amaury Aubry, ewan34500, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/fr.js)
+|🇰🇷|[Korean](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/ko.js)|kdsz330, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/ko.js)
+|🇵🇹|[European Portuguese](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/pt-PT.js)|pcgaldo, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/pt-PT.js)
+|🇺🇦|[Ukrainian](https://github.com/ronggang/transmission-web-control/raw/master/src/tr-web-control/lang/uk.js)|Andrew, vodek3|[2017-04-14](https://github.com/ronggang/transmission-web-control/commits/master/src/tr-web-control/lang/uk.js)
+- **If you have translated a language pack, welcome pull requests.**
 
-#### [How to install](https://code.google.com/p/transmission-control/wiki/Install#1._Automatic_Installation_(Linux))
+### How to install
 
-### Download
- - You can get the latest version of the program for this address:
- - https://github.com/ronggang/transmission-web-control/raw/master/release/transmission-control-full.tar.gz
- - Or download easy install script:
- - https://github.com/ronggang/transmission-web-control/raw/master/release/tr-control-easy-install.sh
+#### Download
+ - Latest source tarball:
+~~~
+  wget https://github.com/ronggang/transmission-web-control/raw/master/release/src.tar.gz
+~~~
+ - Latest easy-install script, This script only needs to be downloaded once and executed when the version is updated.
+~~~
+  wget https://github.com/ronggang/transmission-web-control/raw/master/release/install-tr-control.sh
+  sudo bash install-tr-control.sh
+~~~
+ - If you need to install into `Synology NAS Download Station`, please download the following script:
+~~~
+  wget https://github.com/ronggang/transmission-web-control/raw/master/release/ds-control-easy-install.sh
+  sudo bash ds-control-easy-install-en-http.sh
+~~~
+ - If you need http download instead of https, please use the following
+     commands:
+~~~
+  wget https://github.com/ronggang/transmission-web-control/raw/master/release/install-tr-control.sh --no-check-certificate
+  sudo bash install-tr-control.sh
+~~~
 
 
-###### 创建于(Create): 2012.12.18；更新于(Update): 2014.10.13 By 栽培者(ronggang) ######
+###### 创建于(Create): 2012.12.18；更新于(Update): 2018.02.26 By 栽培者(ronggang); Updated: 03-31-2017 by DarkAlexWang  ######
