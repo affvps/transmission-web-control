@@ -1,8 +1,8 @@
 // Current system global object
 var system = {
-	version: "1.5.0 beta",
+	version: "1.6.0 alpha",
 	rootPath: "tr-web-control/",
-	codeupdate: "20180312",
+	codeupdate: "20180422",
 	configHead: "transmission-web-control",
 	// default config, can be customized in config.js
 	config: {
@@ -14,7 +14,37 @@ var system = {
 		defaultSelectNode: null,
 		autoExpandAttribute: false,
 		defaultLang: "",
-		foldersShow: false
+		foldersShow: false,
+		// theme
+		theme: "default",
+		// 是否显示BT服务器
+		showBTServers: false,
+		ui: {
+			status: {
+				tree: {},
+				layout: {
+					main: {},
+					body: {},
+					left: {}
+				},
+				panel: {},
+				size: {
+					nav: {},
+					attribute: {}
+				}
+			}
+		},
+		hideSubfolders: false,
+		simpleCheckMode: false,
+		nav: {
+			servers: true,
+			folders: true,
+			statistics: true,
+			labels: false
+		},
+		labels: [],
+		labelMaps: {},
+		ignoreVersion: []
 	},
 	storageKeys: {
 		dictionary: {
@@ -25,7 +55,7 @@ var system = {
 	dictionary: {
 		folders: null
 	},
-	checkUpdateScript: "https://raw.githubusercontent.com/ronggang/transmission-web-control/dev/release/update.json",
+	checkUpdateScript: "https://api.github.com/repos/ronggang/transmission-web-control/releases/latest",
 	contextMenus: {},
 	panel: null,
 	lang: null,
@@ -53,6 +83,8 @@ var system = {
 	templates: {},
 	// 当前已选中的行
 	checkedRows: [],
+	uiIsInitialized: false,
+	popoverCount: 0,
 	/**
 	 * 设置语言
 	 */
@@ -101,15 +133,7 @@ var system = {
 	 */
 	init: function (lang, islocal, devicetype) {
 		this.readConfig();
-		/*
-		 alert(screen.width+","+this.config.mobileDeviceWidth);
-		//return;
-		if (screen.width<=this.config.mobileDeviceWidth&&devicetype!="computer")
-		{
-			location.href = "index.mobile.html";
-			return;
-		}
-		*/
+		this.lastUIStatus = JSON.parse(JSON.stringify(this.config.ui.status));
 		this.islocal = (islocal == 1 ? true : false);
 		this.panel = {
 			main: $("#main"),
@@ -119,6 +143,7 @@ var system = {
 			left: $("#m_left"),
 			body: $("#m_body"),
 			layout_body: $("#layout_body"),
+			layout_left: $("#layout_left"),
 			list: $("#m_list"),
 			attribute: $("#m_attribute"),
 			bottom: $("#m_bottom"),
@@ -138,6 +163,9 @@ var system = {
 		}
 
 		this.initThemes();
+		// 剪切板组件
+		this.clipboard = new ClipboardJS('#toolbar_copyPath');
+
 	},
 	// Set the language information
 	resetLangText: function (parent) {
@@ -170,15 +198,20 @@ var system = {
 		//this.panel.title.text(this.lang.system.title+" "+this.version+" ("+this.codeupdate+")");
 		$(document).attr("title", this.lang.system.title + " " + this.version);
 
+		// 设置开关组件默认文字
+		$.fn.switchbutton.defaults.onText = this.lang["public"]["text-on"];
+		$.fn.switchbutton.defaults.offText = this.lang["public"]["text-off"];
+
 		// The initial navigation bar
 		var buttons = new Array();
 		var title = "<span>" + this.lang.title.left + "</span>";
-		buttons.push("<span class='tree-title-toolbar'>");
-		for (var key in this.lang.tree.toolbar.nav) {
-			var value = this.lang.tree.toolbar.nav[key];
-			buttons.push('<a href="javascript:void(0);" id="tree-toolbar-nav-' + key + '" class="easyui-linkbutton" data-options="plain:true,iconCls:\'icon-disabled\'" onclick="javascript:system.navToolbarClick(this);">' + value + "</a>");
-		}
-		buttons.push("</span>");
+		// 暂时取消导航栏上的额外按钮
+		// buttons.push("<span class='tree-title-toolbar'>");
+		// for (var key in this.lang.tree.toolbar.nav) {
+		// 	var value = this.lang.tree.toolbar.nav[key];
+		// 	buttons.push('<a href="javascript:void(0);" id="tree-toolbar-nav-' + key + '" class="easyui-linkbutton" data-options="plain:true,iconCls:\'icon-disabled\'" onclick="javascript:system.navToolbarClick(this);">' + value + "</a>");
+		// }
+		// buttons.push("</span>");
 		if (buttons.length > 1) {
 			title += buttons.join("");
 			this.panel.left_layout.panel("setTitle", title);
@@ -207,12 +240,12 @@ var system = {
 		// Initialize the torrent list column title
 		title = "<span>" + this.lang.title.list + "</span>";
 		buttons.length = 0;
-		buttons.push("<span class='tree-title-toolbar'>");
-		for (var key in this.lang["torrent-head"].buttons) {
-			var value = this.lang["torrent-head"].buttons[key];
-			buttons.push('<a href="javascript:void(0);" id="torrent-head-buttons-' + key + '" class="easyui-linkbutton" data-options="plain:true,iconCls:\'icon-disabled\'" onclick="javascript:system.navToolbarClick(this);">' + value + "</a>");
-		}
-		buttons.push("</span>");
+		// buttons.push("<span class='tree-title-toolbar'>");
+		// for (var key in this.lang["torrent-head"].buttons) {
+		// 	var value = this.lang["torrent-head"].buttons[key];
+		// 	buttons.push('<a href="javascript:void(0);" id="torrent-head-buttons-' + key + '" class="easyui-linkbutton" data-options="plain:true,iconCls:\'icon-disabled\'" onclick="javascript:system.navToolbarClick(this);">' + value + "</a>");
+		// }
+		// buttons.push("</span>");
 		if (buttons.length > 1) {
 			title += buttons.join("");
 			this.panel.body.panel("setTitle", title);
@@ -241,6 +274,7 @@ var system = {
 		}
 
 		this.panel.status.panel("setTitle", this.lang.title.status);
+		// 设置属性栏
 		this.panel.attribute.panel({
 			title: this.lang.title.attribute,
 			onExpand: function () {
@@ -326,6 +360,58 @@ var system = {
 			system.control.torrentlist.datagrid("uncheckAll");
 		});
 
+		// 树型目录事件
+		this.panel.left.tree({
+			onExpand: function(node) {
+				system.config.ui.status.tree[node.id] = node.state;
+				system.saveConfig();
+			},
+			onCollapse: function(node) {
+				system.config.ui.status.tree[node.id] = node.state;
+				system.saveConfig();
+			}
+		});
+
+		// 设置属性栏
+		this.panel.layout_body.layout({
+			onExpand: function (region) {
+				system.config.ui.status.layout.body[region] = "open";
+				system.saveConfig();
+			},
+			onCollapse: function(region) {
+				system.config.ui.status.layout.body[region] = "closed";
+				system.saveConfig();
+			}
+		});
+
+		this.panel.layout_left.layout({
+			onExpand: function (region) {
+				system.config.ui.status.layout.left[region] = "open";
+				system.saveConfig();
+			},
+			onCollapse: function(region) {
+				system.config.ui.status.layout.left[region] = "closed";
+				system.saveConfig();
+			}
+		});
+
+		this.panel.main.layout({
+			onExpand: function (region) {
+				system.config.ui.status.layout.main[region] = "open";
+				system.saveConfig();
+			},
+			onCollapse: function(region) {
+				system.config.ui.status.layout.main[region] = "closed";
+				system.saveConfig();
+			}
+		});
+	},
+	layoutResize: function(target, size) {
+		if (!system.uiIsInitialized) return;
+		if (system.config.ui.status.size[target]) {
+			system.config.ui.status.size[target] = size;
+			system.saveConfig();
+		}
 	},
 	// Navigation toolbar Click Events
 	navToolbarClick: function (source) {
@@ -380,7 +466,6 @@ var system = {
 		this.saveConfig();
 	},
 	// Check the dragged files
-
 	checkDropFiles: function (sources) {
 		if (!sources || !sources.length) return;
 		var files = new Array();
@@ -407,118 +492,140 @@ var system = {
 	},
 	// Initialize the tree list
 	initTree: function () {
-		this.panel.left.tree({
-			data: [{
-					id: "torrent-all",
-					iconCls: "iconfont tr-icon-home",
-					text: this.lang.tree.all + " (" + this.lang.tree.status.loading + ")",
-					children: [{
-						id: "downloading",
-						text: this.lang.tree.downloading,
-						iconCls: "iconfont tr-icon-download"
-					}, {
-						id: "paused",
-						text: this.lang.tree.paused,
-						iconCls: "iconfont tr-icon-pause2"
-					}, {
-						id: "sending",
-						text: this.lang.tree.sending,
-						iconCls: "iconfont tr-icon-upload"
-					}, {
-						id: "check",
-						text: this.lang.tree.check,
-						iconCls: "iconfont tr-icon-data-check"
-					}, {
-						id: "actively",
-						text: this.lang.tree.actively,
-						iconCls: "iconfont tr-icon-actively"
-					}, {
-						id: "error",
-						text: this.lang.tree.error,
-						iconCls: "iconfont tr-icon-errors"
-					}, {
-						id: "warning",
-						text: this.lang.tree.warning,
-						iconCls: "iconfont tr-icon-warning"
-					}]
-				}, {
-					id: "servers",
-					text: this.lang.tree.servers,
-					state: "closed",
-					iconCls: "iconfont tr-icon-servers",
-					children: [{
-						id: "servers-loading",
-						text: this.lang.tree.status.loading,
-						iconCls: "tree-loading"
-					}]
-				}, {
-					id: "folders",
-					text: this.lang.tree.folders,
+		var items = [{
+			id: "torrent-all",
+			iconCls: "iconfont tr-icon-home",
+			text: this.lang.tree.all + " (" + this.lang.tree.status.loading + ")",
+			children: [{
+				id: "downloading",
+				text: this.lang.tree.downloading,
+				iconCls: "iconfont tr-icon-download"
+			}, {
+				id: "paused",
+				text: this.lang.tree.paused,
+				iconCls: "iconfont tr-icon-pause2"
+			}, {
+				id: "sending",
+				text: this.lang.tree.sending,
+				iconCls: "iconfont tr-icon-upload"
+			}, {
+				id: "check",
+				text: this.lang.tree.check,
+				iconCls: "iconfont tr-icon-data-check"
+			}, {
+				id: "actively",
+				text: this.lang.tree.actively,
+				iconCls: "iconfont tr-icon-actively"
+			}, {
+				id: "error",
+				text: this.lang.tree.error,
+				iconCls: "iconfont tr-icon-errors"
+			}, {
+				id: "warning",
+				text: this.lang.tree.warning,
+				iconCls: "iconfont tr-icon-warning"
+			}]}
+		];
+
+		var navContents = {
+			"servers": {
+				id: "servers",
+				text: this.lang.tree.servers,
+				state: "closed",
+				iconCls: "iconfont tr-icon-servers",
+				children: [{
+					id: "servers-loading",
+					text: this.lang.tree.status.loading,
+					iconCls: "tree-loading"
+				}]
+			},
+			"folders": {
+				id: "folders",
+				text: this.lang.tree.folders,
+				iconCls: "iconfont tr-icon-folder",
+				state: "closed",
+				children: [{
+					id: "folders-loading",
+					text: this.lang.tree.status.loading,
+					iconCls: "tree-loading"
+				}]
+			}, 
+			"statistics": {
+				id: "statistics",
+				text: this.lang.tree.statistics.title,
+				state: "closed",
+				iconCls: "iconfont tr-icon-shuju",
+				children: [{
+					id: "cumulative-stats",
+					text: this.lang.tree.statistics.cumulative,
 					iconCls: "iconfont tr-icon-folder",
 					children: [{
-						id: "folders-loading",
-						text: this.lang.tree.status.loading,
-						iconCls: "tree-loading"
+						id: "uploadedBytes",
+						text: this.lang.tree.statistics.uploadedBytes,
+						iconCls: "iconfont tr-icon-empty"
+					}, {
+						id: "downloadedBytes",
+						text: this.lang.tree.statistics.downloadedBytes,
+						iconCls: "iconfont tr-icon-empty"
+					}, {
+						id: "filesAdded",
+						text: this.lang.tree.statistics.filesAdded,
+						iconCls: "iconfont tr-icon-empty"
+					}, {
+						id: "sessionCount",
+						text: this.lang.tree.statistics.sessionCount,
+						iconCls: "iconfont tr-icon-empty"
+					}, {
+						id: "secondsActive",
+						text: this.lang.tree.statistics.secondsActive,
+						iconCls: "iconfont tr-icon-empty"
 					}]
 				}, {
-					id: "statistics",
-					text: this.lang.tree.statistics.title,
-					state: "closed",
-					iconCls: "iconfont tr-icon-shuju",
+					id: "current-stats",
+					text: this.lang.tree.statistics.current,
+					iconCls: "iconfont tr-icon-folder",
 					children: [{
-						id: "cumulative-stats",
-						text: this.lang.tree.statistics.cumulative,
-						iconCls: "iconfont tr-icon-folder",
-						children: [{
-							id: "uploadedBytes",
-							text: this.lang.tree.statistics.uploadedBytes,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "downloadedBytes",
-							text: this.lang.tree.statistics.downloadedBytes,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "filesAdded",
-							text: this.lang.tree.statistics.filesAdded,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "sessionCount",
-							text: this.lang.tree.statistics.sessionCount,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "secondsActive",
-							text: this.lang.tree.statistics.secondsActive,
-							iconCls: "iconfont tr-icon-empty"
-						}]
+						id: "current-uploadedBytes",
+						text: this.lang.tree.statistics.uploadedBytes,
+						iconCls: "iconfont tr-icon-empty"
 					}, {
-						id: "current-stats",
-						text: this.lang.tree.statistics.current,
-						iconCls: "iconfont tr-icon-folder",
-						children: [{
-							id: "current-uploadedBytes",
-							text: this.lang.tree.statistics.uploadedBytes,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "current-downloadedBytes",
-							text: this.lang.tree.statistics.downloadedBytes,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "current-filesAdded",
-							text: this.lang.tree.statistics.filesAdded,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "current-sessionCount",
-							text: this.lang.tree.statistics.sessionCount,
-							iconCls: "iconfont tr-icon-empty"
-						}, {
-							id: "current-secondsActive",
-							text: this.lang.tree.statistics.secondsActive,
-							iconCls: "iconfont tr-icon-empty"
-						}]
+						id: "current-downloadedBytes",
+						text: this.lang.tree.statistics.downloadedBytes,
+						iconCls: "iconfont tr-icon-empty"
+					}, {
+						id: "current-filesAdded",
+						text: this.lang.tree.statistics.filesAdded,
+						iconCls: "iconfont tr-icon-empty"
+					}, {
+						id: "current-sessionCount",
+						text: this.lang.tree.statistics.sessionCount,
+						iconCls: "iconfont tr-icon-empty"
+					}, {
+						id: "current-secondsActive",
+						text: this.lang.tree.statistics.secondsActive,
+						iconCls: "iconfont tr-icon-empty"
 					}]
-				}
+				}]
+			},
+			"labels": {
+				id: "labels",
+				text: this.lang.tree.labels,
+				iconCls: "iconfont tr-icon-labels"
+			}
+		}
 
-			],
+		for (var key in this.config.nav) {
+			var value = this.config.nav[key];
+			var data = navContents[key];
+			if (data) {
+				if (value) {
+					items.push(data);
+				}
+			}
+		}
+		
+		this.panel.left.tree({
+			data: items,
 			onSelect: function (node) {
 				system.loadTorrentToList({
 					node: node
@@ -526,25 +633,79 @@ var system = {
 			},
 			lines: true
 		});
-
-		for (var key in this.lang.tree.toolbar.nav) {
-			var treenode = this.panel.left.tree("find", key);
-			switch (key) {
-				case "folders":
-					if (system.config.foldersShow) {
-						$("#tree-toolbar-nav-" + key).click();
-						$(treenode.target).parent().show();
-					} else {
-						$(treenode.target).parent().hide();
-					}
+	},
+	/**
+	 * 初始化界面状态
+	 */
+	initUIStatus: function() {
+		if (this.uiIsInitialized) return;
+		system.uiIsInitialized = true;
+		var status = this.lastUIStatus.tree;
+		for (var key in status) {
+			var node = this.panel.left.tree("find", key);
+			if (node && node.target) {
+				if (status[key]=="open") {
+					this.panel.left.tree("expand", node.target);
+				} else {
+					this.panel.left.tree("collapse", node.target);
+				}
 			}
 		}
+
+		// 是否显示数据目录
+		// if (!this.config.foldersShow) {
+		// 	var node = this.panel.left.tree("find", "folders");
+		// 	$(node.target).parent().hide();
+		// }
 
 		// node that specifies the default selection
 		if (this.config.defaultSelectNode) {
 			var node = this.panel.left.tree("find", this.config.defaultSelectNode);
-			if (node) {
+			// 当不显示目录时，如果最后选择的为目录，则显示所有种子；
+			if (node && (this.config.foldersShow || this.config.defaultSelectNode.indexOf("folders")==-1)) {
 				this.panel.left.tree("select", node.target);
+			} else {
+				node = this.panel.left.tree("find", "torrent-all");
+				this.panel.left.tree("select", node.target);
+			}
+		}
+
+		// 恢复尺寸
+		if (this.lastUIStatus.size.nav && this.lastUIStatus.size.nav.width) {
+			this.panel.main.layout('panel', 'west').panel('resize', { width: this.lastUIStatus.size.nav.width + 5 });
+			this.panel.main.layout("resize");
+		}
+
+		if (this.lastUIStatus.size.attribute && this.lastUIStatus.size.attribute.height) {
+			this.panel.layout_body.layout('panel', 'south').panel('resize', { height: this.lastUIStatus.size.attribute.height });
+			this.panel.layout_body.layout("resize");
+		}
+
+		// 恢复展开状态
+		status = this.lastUIStatus.layout.body;
+		for (var key in status) {
+			if (status[key]=="open") {
+				this.panel.layout_body.layout("expand", key);
+			} else {
+				this.panel.layout_body.layout("collapse", key);
+			}
+		}
+
+		status = this.lastUIStatus.layout.left;
+		for (var key in status) {
+			if (status[key]=="open") {
+				this.panel.layout_left.layout("expand", key);
+			} else {
+				this.panel.layout_left.layout("collapse", key);
+			}
+		}
+
+		status = this.lastUIStatus.layout.main;
+		for (var key in status) {
+			if (status[key]=="open") {
+				this.panel.main.layout("expand", key);
+			} else {
+				this.panel.main.layout("collapse", key);
 			}
 		}
 	},
@@ -553,22 +714,41 @@ var system = {
 		this.control.torrentlist = $("<table/>").attr("class", "torrent-list").appendTo(this.panel.list);
 		var headContextMenu = null;
 		var selectedIndex = -1;
-		var flag_onselect = false;
 		$.get(system.rootPath + "template/torrent-fields.json?time=" + (new Date()), function (data) {
 			var fields = data.fields;
+			var _fields = {}
+			for (var i=0;i<fields.length;i++) {
+				var item = fields[i];
+				_fields[item.field] = item;
+			}
+
 			if (system.userConfig.torrentList.fields.length != 0) {
 				fields = $.extend(fields, system.userConfig.torrentList.fields);
 			}
 
-			var _fields = JSON.stringify(fields);
 			// User field settings
-			system.userConfig.torrentList.fields = JSON.parse(_fields);
+			system.userConfig.torrentList.fields = fields;
 
 			for (var key in fields) {
-				fields[key].title = system.lang.torrent.fields[fields[key].field] || fields[key].field;
-				system.setFieldFormat(fields[key]);
+				var item = fields[key];
+				var _field = _fields[item.field];
+				if (_field && _field["formatter"]) {
+					item["formatter"] = _field["formatter"];
+				} else if (item["formatter"]) {
+					delete item["formatter"];
+				}
+
+				if (_field && _field["sortable"]) {
+					item["sortable"] = _field["sortable"];
+				} else if (item["sortable"]) {
+					delete item["sortable"];
+				}
+				
+				item.title = system.lang.torrent.fields[item.field] || item.field;
+				system.setFieldFormat(item);
 			}
 
+			// 初始化种子列表
 			system.control.torrentlist.datagrid({
 				autoRowHeight: false,
 				pagination: system.config.pagination,
@@ -598,27 +778,12 @@ var system = {
 				},
 				onSelect: function (rowIndex, rowData) {
 					if (selectedIndex != -1) {
-						flag_onselect = true;
 						system.control.torrentlist.datagrid("unselectRow", selectedIndex);
-						flag_onselect = false;
-					}
-
-					if (system.config.autoExpandAttribute) {
-						// If it is not expanded, expand it
-						if (system.panel.attribute.panel("options").collapsed)
-							system.panel.layout_body.layout("expand", "south");
 					}
 					system.getTorrentInfos(rowData.id);
 					selectedIndex = rowIndex;
 				},
 				onUnselect: function (rowIndex, rowData) {
-					if (system.config.autoExpandAttribute) {
-						if (flag_onselect == false) {
-							// If expanded, collapse it
-							if (!system.panel.attribute.panel("options").collapsed)
-								system.panel.layout_body.layout("collapse", "south");
-						}
-					}
 					system.currentTorrentId = 0;
 					selectedIndex = -1;
 				},
@@ -629,9 +794,6 @@ var system = {
 				// Header sorting
 				onSortColumn: function (field, order) {
 					var field_func = field;
-					if (field == "remainingTime") {
-						field_func = "remainingTimeRaw";
-					}
 					var datas = system.control.torrentlist.datagrid("getData").originalRows.sort(arrayObjectSort(field_func, order));
 					system.control.torrentlist.datagrid("loadData", datas);
 
@@ -642,7 +804,9 @@ var system = {
 				},
 				onRowContextMenu: function (e, rowIndex, rowData) {
 					//console.log("onRowContextMenu");
-					// system.control.torrentlist.datagrid("uncheckAll");
+					if (system.config.simpleCheckMode) {
+						system.control.torrentlist.datagrid("uncheckAll");
+					}
 
 					// 当没有种子被选中时，选中当前行
 					if (system.checkedRows.length==0) {
@@ -674,6 +838,11 @@ var system = {
 				}
 			});
 		}, "json");
+
+		// 刷新当前页数据
+		this.control.torrentlist.refresh = function() {
+			system.control.torrentlist.datagrid("getPager").find(".pagination-load").click();
+		};
 
 		// Create a header right-click menu
 		function createHeadContextMenu() {
@@ -750,7 +919,12 @@ var system = {
 
 		switch (type) {
 			case "torrent-list":
-				menus = new Array("start", "pause", "-", "rename", "remove", "recheck", "-", "morepeers", "changeDownloadDir", "-", "menu-queue-move-top", "menu-queue-move-up", "menu-queue-move-down", "menu-queue-move-bottom");
+				menus = new Array("start", "pause", "-", 
+										"rename", "remove", "recheck", "-", 
+										"morepeers", "changeDownloadDir", "copyPath", "-", 
+										"menu-queue-move-top", "menu-queue-move-up", "menu-queue-move-down", "menu-queue-move-bottom", "-",
+										"setLabels"
+										);
 				var toolbar = this.panel.toolbar;
 				for (var item in menus) {
 					var key = menus[item];
@@ -780,11 +954,24 @@ var system = {
 										$("#" + $(this).attr("id")).click();
 									}
 								});
+							} else {
+								menu = this.getContentMenuWithKey(key);
+								if (menu) {
+									parent.menu("appendItem", menu);
+								}
 							}
 						}
 						menu = null;
 					}
 				}
+				// 设置剪切板组件，因为直接调用 click 不能执行相关操作
+				var btn = $('#copyPath', parent);
+				btn.attr({
+					"data-clipboard-action": "copy",
+					"data-clipboard-target": "#clipboard-source"
+				});
+    			var clipboard = new ClipboardJS(btn.get(0));
+
 				break;
 		}
 		parent.menu("show", {
@@ -795,9 +982,97 @@ var system = {
 		menus = null;
 	},
 	/**
+	 * 根据指定的key获取右键菜单
+	 * @param key
+	 * @return 菜单对象
+	 */
+	getContentMenuWithKey: function(key) {
+		switch (key) {
+			case "setLabels":
+				return {
+					id: "setLabels",
+					text: system.lang.menus.setLabels,
+					iconCls: "iconfont tr-icon-labels",
+					disabled: this.checkedRows.length==0,
+					onclick: function() {
+						var rows = system.checkedRows;
+						var values = new Array();
+						for (var i in rows) {
+							values.push(rows[i].hashString);
+						}
+						if (values.length == 0) return;
+
+						system.openDialogFromTemplate({
+							id: "dialog-torrent-setLabels",
+							options: {
+								title: system.lang.dialog["torrent-setLabels"].title,
+								width: 520,
+								height: 200
+							},
+							datas: {
+								"hashs": values
+							}
+						});
+					}
+				};
+				break;
+		}
+	},
+	/**
+	 * 格式化指定种子的标签
+	 * @param ids 标签id列表, 数组
+	 * @param hashString 种子的hash值
+	 * @return 返回一组标签内容
+	 */
+	formetTorrentLabels: function(ids, hashString) {
+		var box = $("<div style='position: relative;'/>");
+		if (ids) {
+			if (typeof(ids)=="string") {
+				ids = ids.split(",");
+			}
+
+			for (var i = 0; i < ids.length; i++) {
+				var index = ids[i];
+				var item = this.config.labels[index];
+				if (item) {
+					$("<span class='user-label'/>").html(item.name).css({
+						"background-color": item.color,
+						"color": (getGrayLevel(item.color) > 0.5 ? "#000" : "#fff")
+					}).appendTo(box);
+				}
+			}
+		}
+		
+		var button = $("<button onclick='javascript:system.setTorrentLabels(this,\""+hashString+"\");' data-options=\"iconCls:'iconfont tr-icon-labels',plain:true\" class=\"easyui-linkbutton user-label-set\"/>").appendTo(box);
+		button.linkbutton();
+		button.find("span").first().attr({
+			"title": system.lang.dialog["torrent-setLabels"].title
+		});
+		return box.get(0).outerHTML;
+	},
+	/**
+	 * 快速设置当前种子标签
+	 */
+	setTorrentLabels: function(button, hashString) {
+		system.openDialogFromTemplate({
+			id: "dialog-torrent-setLabels",
+			options: {
+				title: system.lang.dialog["torrent-setLabels"].title,
+				width: 520,
+				height: 200
+			},
+			datas: {
+				"hashs": [hashString]
+			},
+			type: 1,
+			source: $(button)
+		});
+	},
+	/**
 	 * 选中或反选种子时，改变菜单的可操作状态
 	 * @param rowIndex 	当前行索引，当全选/反选时为 'all'
 	 * @param rowData		当前行数据，当全选/反选时为 true 或 false，全选为false, 全反选为 true
+	 * @return void
 	 */
 	checkTorrentRow: function (rowIndex, rowData) {
 		// 获取当前已选中的行
@@ -808,7 +1083,7 @@ var system = {
 			if (this.control.torrentlist.datagrid("getRows").length==0) {
 				return;
 			}
-			$("#toolbar_start, #toolbar_pause, #toolbar_remove, #toolbar_recheck, #toolbar_changeDownloadDir,#toolbar_morepeers", this.panel.toolbar).linkbutton({
+			$("#toolbar_start, #toolbar_pause, #toolbar_remove, #toolbar_recheck, #toolbar_changeDownloadDir,#toolbar_morepeers,#toolbar_copyPath", this.panel.toolbar).linkbutton({
 				disabled: rowData
 			});
 
@@ -822,7 +1097,7 @@ var system = {
 		// 如果没有被选中的数据时
 		if (this.checkedRows.length == 0) {
 			// 禁用所有菜单
-			$("#toolbar_start, #toolbar_pause, #toolbar_rename, #toolbar_remove, #toolbar_recheck, #toolbar_changeDownloadDir,#toolbar_morepeers", this.panel.toolbar).linkbutton({
+			$("#toolbar_start, #toolbar_pause, #toolbar_rename, #toolbar_remove, #toolbar_recheck, #toolbar_changeDownloadDir,#toolbar_morepeers,#toolbar_copyPath", this.panel.toolbar).linkbutton({
 				disabled: true
 			});
 			this.panel.toolbar.find("#toolbar_queue").menubutton("disable");
@@ -831,7 +1106,7 @@ var system = {
 		// 当仅有一条数据被选中时
 		} else if (this.checkedRows.length == 1) {
 			// 设置 删除、改名、变更保存目录、移动队列功能可用
-			$("#toolbar_remove, #toolbar_rename, #toolbar_changeDownloadDir", this.panel.toolbar).linkbutton({
+			$("#toolbar_remove, #toolbar_rename, #toolbar_changeDownloadDir,#toolbar_copyPath", this.panel.toolbar).linkbutton({
 				disabled: false
 			});
 			this.panel.toolbar.find("#toolbar_queue").menubutton("enable");
@@ -870,7 +1145,7 @@ var system = {
 
 		// 多条数据被选中时
 		} else {
-			$("#toolbar_start, #toolbar_pause, #toolbar_remove, #toolbar_recheck, #toolbar_changeDownloadDir", this.panel.toolbar).linkbutton({
+			$("#toolbar_start, #toolbar_pause, #toolbar_remove, #toolbar_recheck, #toolbar_changeDownloadDir,#toolbar_copyPath", this.panel.toolbar).linkbutton({
 				disabled: false
 			});
 			$("#toolbar_rename, #toolbar_morepeers", this.panel.toolbar).linkbutton({
@@ -888,10 +1163,14 @@ var system = {
 			this.showStatus(undefined, 0);
 			var items = [];
 			var text = this.lang.system.status.checked.replace("%n", this.checkedRows.length);
+			var paths = [];
 			$("<div style='padding: 5px;'/>").html(text).appendTo(this.panel.status_text);
 			for (var index = 0; index < this.checkedRows.length; index++) {
 				var item = this.checkedRows[index];
 				items.push({value: index, text: (index+1)+". "+item.name});
+				if ($.inArray(item.downloadDir, paths)===-1) {
+					paths.push(item.downloadDir);
+				}
 			}
 			$("<div/>").appendTo(this.panel.status_text).datalist({
 				data: items
@@ -901,10 +1180,12 @@ var system = {
 				border: 0
 			});
 			$("#button-cancel-checked").show();
+			$("#clipboard-source").val(paths.join("\n"));
 		} else {
 			// this.showStatus("无", 100);
 			$("#button-cancel-checked").hide();
 			this.panel.status_text.empty();
+			$("#clipboard-source").val("");
 		}
 	},
 	// Initialize the System Toolbar
@@ -1114,7 +1395,7 @@ var system = {
 					options: {
 						title: system.lang.dialog["torrent-rename"].title,
 						width: 520,
-						height: 180,
+						height: 200,
 						resizable: true
 					},
 					datas: {
@@ -1194,8 +1475,8 @@ var system = {
 					id: "dialog-system-config",
 					options: {
 						title: system.lang.toolbar["system-config"],
-						width: 620,
-						height: 440,
+						width: 680,
+						height: 450,
 						resizable: true
 					}
 				});
@@ -1216,6 +1497,10 @@ var system = {
 			},
 			prompt: this.lang.toolbar["search-prompt"]
 		});
+
+		this.panel.toolbar.find("#toolbar_copyPath")
+			.linkbutton()
+			.attr("title", this.lang.toolbar.tip["copy-path-to-clipboard"]);
 	},
 	// Initialize the status bar
 	initStatusBar: function () {
@@ -1324,73 +1609,24 @@ var system = {
 	},
 	// refresh the tree
 	resetTorrentInfos: function (oldInfos) {
+		this.resetNavTorrentStatus();
+		this.resetNavServers(oldInfos);
+		this.resetNavStatistics();
+		this.resetNavFolders(oldInfos);
+		this.resetNavLabels();
+
+		// FF browser displays the total size, will be moved down a row, so a separate treatment
+		if (navigator.userAgent.indexOf("Firefox") > 0) {
+			system.panel.left.find("span.nav-total-size").css({
+				"margin-top": "-19px"
+			});
+		}
+	},
+	/**
+	 * 重置导航栏种子状态信息
+	 */
+	resetNavTorrentStatus: function() {
 		var currentTorrentId = this.currentTorrentId;
-		// 获取服务器分布主节点
-		var serversNode = this.panel.left.tree("find", "servers");
-		if (serversNode) {
-			var serversNode_collapsed = serversNode.state;
-			this.removeTreeNode("servers-loading");
-		} else {
-			this.appendTreeNode(null, [{
-				id: "servers",
-				text: this.lang.tree.servers,
-				state: "closed",
-				iconCls: "iconfont tr-icon-servers"
-			}]);
-			serversNode = this.panel.left.tree("find", "servers");
-		}
-
-		var datas = new Array();
-		var BTServersNode = this.panel.left.tree("find", "btservers");
-		// 加载服务器列表
-		for (var index in transmission.trackers) {
-			var tracker = transmission.trackers[index];
-			if (tracker.isBT) {
-				// 是否显示BT服务器
-				if (!system.config.showBTServers) {
-					continue;
-				}
-				if (!BTServersNode) {
-					this.appendTreeNode(serversNode, [{
-						id: "btservers",
-						text: "BT",
-						state: "open",
-						iconCls: "iconfont tr-icon-bt"
-					}]);
-					BTServersNode = this.panel.left.tree("find", "btservers");
-				}
-			}
-			var node = system.panel.left.tree("find", tracker.nodeid);
-			var text = tracker.name + this.showNodeMoreInfos(tracker.count, tracker.size);
-			if (node) {
-				system.updateTreeNodeText(tracker.nodeid, text, (tracker.connected ? "iconfont tr-icon-server" : "iconfont tr-icon-server-error"));
-			} else {
-				system.appendTreeNode((tracker.isBT? BTServersNode: serversNode), [{
-					id: tracker.nodeid,
-					text: text,
-					iconCls: (tracker.connected ? "iconfont tr-icon-server" : "iconfont tr-icon-server-error")
-				}]);
-			}
-
-			oldInfos.trackers[tracker.nodeid] = null;
-		}
-		// Collapse the node if it was before
-		if (serversNode_collapsed == "closed") {
-			this.panel.left.tree("collapse", serversNode.target);
-		}
-
-		if (system.config.showBTServers) {
-			this.panel.left.tree("collapse", BTServersNode.target);
-		}
-
-		// Delete the server that no longer exists
-		for (var index in oldInfos.trackers) {
-			var tracker = oldInfos.trackers[index];
-			if (tracker) {
-				system.removeTreeNode(tracker.nodeid);
-			}
-		}
-
 		// Paused
 		if (transmission.torrents.status[transmission._status.stopped]) {
 			system.updateTreeNodeText("paused", system.lang.tree.paused + this.showNodeMoreInfos(transmission.torrents.status[transmission._status.stopped].length));
@@ -1500,27 +1736,128 @@ var system = {
 
 		// Total count
 		system.updateTreeNodeText("torrent-all", system.lang.tree.all + this.showNodeMoreInfos(transmission.torrents.count, transmission.torrents.totalSize));
+	},
+	/**
+	 * 重置导航栏服务器信息
+	 */
+	resetNavServers: function(oldInfos) {
+		// 获取服务器分布主节点
+		var serversNode = this.panel.left.tree("find", "servers");
+		if (!this.config.nav.servers) {
+			if (serversNode) {
+				this.panel.left.tree("remove", serversNode.target);
+			}
+			return;
+		}
+		
+		if (serversNode) {
+			var serversNode_collapsed = serversNode.state;
+			this.removeTreeNode("servers-loading");
+		} else {
+			this.appendTreeNode(null, [{
+				id: "servers",
+				text: this.lang.tree.servers,
+				state: "closed",
+				iconCls: "iconfont tr-icon-servers"
+			}]);
+			serversNode = this.panel.left.tree("find", "servers");
+		}
 
+		var datas = new Array();
+		var BTServersNode = this.panel.left.tree("find", "btservers");
+		var BTServersNodeState = (BTServersNode?BTServersNode.state:"close");
+		// 加载服务器列表
+		for (var index in transmission.trackers) {
+			var tracker = transmission.trackers[index];
+			if (tracker.isBT) {
+				// 是否显示BT服务器
+				if (!system.config.showBTServers) {
+					continue;
+				}
+				if (!BTServersNode) {
+					this.appendTreeNode(serversNode, [{
+						id: "btservers",
+						text: "BT",
+						state: "open",
+						iconCls: "iconfont tr-icon-bt"
+					}]);
+					BTServersNode = this.panel.left.tree("find", "btservers");
+				}
+			}
+			var node = system.panel.left.tree("find", tracker.nodeid);
+			var text = tracker.name + this.showNodeMoreInfos(tracker.count, tracker.size);
+			if (node) {
+				system.updateTreeNodeText(tracker.nodeid, text, (tracker.connected ? "iconfont tr-icon-server" : "iconfont tr-icon-server-error"));
+			} else {
+				system.appendTreeNode((tracker.isBT? BTServersNode: serversNode), [{
+					id: tracker.nodeid,
+					text: text,
+					iconCls: (tracker.connected ? "iconfont tr-icon-server" : "iconfont tr-icon-server-error")
+				}]);
+			}
+
+			oldInfos.trackers[tracker.nodeid] = null;
+		}
+		// Collapse the node if it was before
+		if (serversNode_collapsed == "closed") {
+			this.panel.left.tree("collapse", serversNode.target);
+		}
+
+		if (system.config.showBTServers && BTServersNode && BTServersNodeState == "closed") {
+			this.panel.left.tree("collapse", BTServersNode.target);
+		}
+
+		// Delete the server that no longer exists
+		for (var index in oldInfos.trackers) {
+			var tracker = oldInfos.trackers[index];
+			if (tracker) {
+				system.removeTreeNode(tracker.nodeid);
+			}
+		}
+	},
+	/**
+	 * 重置导航栏数据统计信息
+	 */
+	resetNavStatistics: function() {
+		if (!this.config.nav.statistics) {
+			var node = this.panel.left.tree("find", "statistics");
+			if (node) {
+				this.panel.left.tree("remove", node.target);
+			}
+			return;
+		}
 		// Statistics
 		var items = ("uploadedBytes,downloadedBytes,filesAdded,sessionCount,secondsActive").split(",");
 		$.each(items, function (key, item) {
 			switch (item) {
 				case "uploadedBytes":
 				case "downloadedBytes":
-					system.updateTreeNodeText(item, system.lang.tree.statistics[item] + formatSize(system.serverSessionStats["cumulative-stats"][item]));
-					system.updateTreeNodeText("current-" + item, system.lang.tree.statistics[item] + formatSize(system.serverSessionStats["current-stats"][item]));
+					system.updateTreeNodeText(item, system.lang.tree.statistics[item] + " " + formatSize(system.serverSessionStats["cumulative-stats"][item]));
+					system.updateTreeNodeText("current-" + item, system.lang.tree.statistics[item] + " " + formatSize(system.serverSessionStats["current-stats"][item]));
 					break;
 				case "secondsActive":
-					system.updateTreeNodeText(item, system.lang.tree.statistics[item] + getTotalTime(system.serverSessionStats["cumulative-stats"][item] * 1000));
-					system.updateTreeNodeText("current-" + item, system.lang.tree.statistics[item] + getTotalTime(system.serverSessionStats["current-stats"][item] * 1000));
+					system.updateTreeNodeText(item, system.lang.tree.statistics[item] + " " + getTotalTime(system.serverSessionStats["cumulative-stats"][item] * 1000));
+					system.updateTreeNodeText("current-" + item, system.lang.tree.statistics[item] + " " + getTotalTime(system.serverSessionStats["current-stats"][item] * 1000));
 					break;
 				default:
-					system.updateTreeNodeText(item, system.lang.tree.statistics[item] + system.serverSessionStats["cumulative-stats"][item]);
-					system.updateTreeNodeText("current-" + item, system.lang.tree.statistics[item] + system.serverSessionStats["current-stats"][item]);
+					system.updateTreeNodeText(item, system.lang.tree.statistics[item] + " " + system.serverSessionStats["cumulative-stats"][item]);
+					system.updateTreeNodeText("current-" + item, system.lang.tree.statistics[item] + " " + system.serverSessionStats["current-stats"][item]);
 					break;
 			}
 		});
-
+	},
+	/**
+	 * 重置导航栏数据目录信息
+	 */
+	resetNavFolders: function(oldInfos) {
+		if (!this.config.nav.folders) {
+			this.initUIStatus();
+			var node = this.panel.left.tree("find", "folders");
+			if (node) {
+				this.panel.left.tree("remove", node.target);
+			}
+			return;
+		}
 		for (var index in transmission.torrents.folders) {
 			var item = transmission.torrents.folders[index];
 			oldInfos.folders[item.nodeid] = null;
@@ -1528,12 +1865,49 @@ var system = {
 
 		// Loads the directory listing
 		this.loadFolderList(oldInfos.folders);
+	},
+	/**
+	 * 重置导航栏用户标签信息
+	 */
+	resetNavLabels: function(clear) {
+		if (!this.config.nav.labels) {
+			var node = this.panel.left.tree("find", "labels");
+			if (node) {
+				this.panel.left.tree("remove", node.target);
+			}
+			return;
+		}
 
-		// FF browser displays the total size, will be moved down a row, so a separate treatment
-		if (navigator.userAgent.indexOf("Firefox") > 0) {
-			system.panel.left.find("span.nav-total-size").css({
-				"margin-top": "-19px"
-			});
+		if (clear) {
+			var items = this.panel.left.tree("getChildren", this.panel.left.tree("find","labels").target);
+			for (var index = 0; index < items.length; index++) {
+				this.panel.left.tree("remove", items[index].target);
+			}
+		}
+
+		var prefix = "label-";
+
+		for (var index = 0; index < this.config.labels.length; index++) {
+			var item = this.config.labels[index];
+			var key = prefix + this.getValidTreeKey(item.name);
+			var node = this.panel.left.tree("find", key);
+			if (!node) {
+				this.appendTreeNode("labels", [{
+					id: key,
+					text: item.name,
+					labelIndex: index,
+					iconCls: "iconfont tr-icon-label"
+				}]);
+				node = this.panel.left.tree("find", key);
+				$(".tree-icon", node.target).css({
+					color: item.color
+				});
+
+				$(".tree-title", node.target).addClass("user-label").css({
+					"background-color": item.color,
+					"color": (getGrayLevel(item.color) > 0.5 ? "#000" : "#fff")
+				});
+			}
 		}
 	},
 	// Displays the current torrent count and size
@@ -1665,7 +2039,12 @@ var system = {
 
 		switch (parent.id) {
 			case "servers":
-				torrents = transmission.trackers[config.node.id].torrents;
+			case "btservers":
+				if (config.node.id=="btservers") {
+					torrents = transmission.torrents.btItems;
+				} else {
+					torrents = transmission.trackers[config.node.id].torrents;
+				}
 				break;
 			default:
 				switch (config.node.id) {
@@ -1714,12 +2093,36 @@ var system = {
 						torrents = transmission.torrents.searchResult;
 						break;
 
+					case "btservers":
+						torrents = transmission.torrents.btItems;
+						break;
+
 					default:
 						// Categories
 						if (config.node.id.indexOf("folders-") != -1) {
 							var folder = transmission.torrents.folders[config.node.id];
 							if (folder) {
-								torrents = folder.torrents;
+								if (!this.config.hideSubfolders) {
+									torrents = folder.torrents;
+								} else {
+									torrents = [];
+									for (var index = 0; index < folder.torrents.length; index++) {
+										var element = folder.torrents[index];
+										if (element.downloadDir.replace(/[\\|\/]/g,"")==config.node.path) {
+											torrents.push(element);
+										}
+									}
+								}
+							}
+						} else if (config.node.id.indexOf("label-") != -1) {
+							var labelIndex = parseInt(config.node.labelIndex);
+							torrents = [];
+							for (var key in transmission.torrents.all) {
+								var item = transmission.torrents.all[key];
+								var labels = this.config.labelMaps[item.hashString];
+								if (labels && $.inArray(labelIndex, labels)!=-1) {
+									torrents.push(item);
+								}
 							}
 						}
 						break;
@@ -1757,6 +2160,11 @@ var system = {
 			data.completeSize = Math.max(0, torrents[index].totalSize - torrents[index].leftUntilDone);
 			data.leecherCount = torrents[index].leecher;
 			data.seederCount = torrents[index].seeder;
+			var labels = this.config.labelMaps[data.hashString];
+			if (labels) {
+				data.labels = labels;
+			}
+			
 			//data.leecherCount = torrents[index].leecher;
 			/*
 			datas.push({
@@ -1808,9 +2216,6 @@ var system = {
 		if (_options.sortName) {
 			orderField = _options.sortName;
 			var orderField_func = orderField;
-			if (orderField == "remainingTime") {
-				orderField_func = "remainingTimeRaw";
-			}
 			currentTypeDatas = currentTypeDatas.sort(arrayObjectSort(orderField_func, _options.sortOrder));
 		}
 
@@ -2203,6 +2608,15 @@ var system = {
 					}
 					break;
 
+				case "remainingTime":
+					if (value>=3153600000000) {
+						value = "∞";
+					} else {
+						value = getTotalTime(value);
+					}
+					
+					break;
+
 					// description
 				case "comment":
 					value = system.replaceURI(value);
@@ -2386,11 +2800,41 @@ var system = {
 					};
 					break;
 
+				case "remainingTime":
+					field.formatter = function (value, row, index) {
+						if (value>=3153600000000) {
+							return "∞";
+						}
+						return getTotalTime(value);
+					};
+					break;
+
+				case "labels":
+					field.formatter = function(value, row, index) {
+						return system.formetTorrentLabels(value, row.hashString);
+					}
+					break;
+				
+				case "color":
+					field.formatter = function(value, row, index) {
+						var box = $("<span class='user-label'/>").html(value).css({
+							"background-color": value,
+							"color": (getGrayLevel(value) > 0.5 ? "#000" : "#fff")
+						});
+						return box.get(0).outerHTML;
+					}
+					break;
 			}
 		}
 	},
 	// Reload the data		
 	reloadData: function () {
+		if (this.popoverCount>0) {
+			setTimeout(function(){
+				system.reloadData();
+			}, 2000);
+			return;
+		}
 		this.reloadSession();
 		this.reloading = false;
 		this.getServerStatus();
@@ -2421,7 +2865,7 @@ var system = {
 				});
 			}
 
-
+			system.initUIStatus();
 		});
 		/*
 		for (var index in transmission.downloadDirs)
@@ -2436,33 +2880,43 @@ var system = {
 
 		var rootkey = "folders";
 		var parentkey = rootkey;
-		var folder = fullkey.split("/");
+		var folder = fullkey.replace(/\\/g,"/").split("/");
 		var key = rootkey + "-";
+		var path = "";
 		for (var i in folder) {
 			var name = folder[i];
 			if (name == "") {
 				continue;
 			}
 			//key += "--" + text.replace(/\./g,"。") + "--";
-			key += this.B64.encode(name);
+			path += name;
+			var _key = this.B64.encode(name);
+			key += _key.replace(/[+|\/|=]/g,"0");
 			var node = this.panel.left.tree("find", key);
 			var folderinfos = transmission.torrents.folders[key];
-			var text = name + this.showNodeMoreInfos(folderinfos.count, folderinfos.size);
+			if (folderinfos) {
+				var text = name + this.showNodeMoreInfos(folderinfos.count, folderinfos.size);
 
-			if (!node) {
-				this.appendTreeNode(parentkey, [{
-					id: key,
-					text: text,
-					iconCls: "iconfont tr-icon-file"
-				}]);
-				if (parentkey != rootkey) {
-					node = this.panel.left.tree("find", parentkey);
-					this.panel.left.tree("collapse", node.target);
+				if (!node) {
+					this.appendTreeNode(parentkey, [{
+						id: key,
+						path: path,
+						text: text,
+						iconCls: "iconfont tr-icon-file"
+					}]);
+					if (parentkey != rootkey) {
+						node = this.panel.left.tree("find", parentkey);
+						this.panel.left.tree("collapse", node.target);
+					}
+				} else {
+					this.updateTreeNodeText(key, text);
 				}
+				parentkey = key;
 			} else {
-				this.updateTreeNodeText(key, text);
+				this.debug("appendFolder:key", key);
+				this.debug("appendFolder:name", name);
+				this.debug("appendFolder:node", node);
 			}
-			parentkey = key;
 		}
 	},
 	replaceURI: function (text) {
@@ -2477,7 +2931,7 @@ var system = {
 		// 将原来的cookies的方式改为本地存储的方式
 		var config = this.getStorageData(this.configHead + '.system');
 		if (config) {
-			this.config = $.extend(this.config, JSON.parse(config));
+			this.config = $.extend(true, this.config, JSON.parse(config));
 		}
 
 		for (var key in this.storageKeys.dictionary) {
@@ -2511,7 +2965,7 @@ var system = {
 				transmission.addTorrentFromFile(file, savePath, paused, callback, files.length);
 			});
 		} else {
-			alert(system.lang["publit"]["text-browsers-not-support-features"]);
+			alert(system.lang["public"]["text-browsers-not-support-features"]);
 		}
 	},
 	checkUpdate: function () {
@@ -2519,16 +2973,45 @@ var system = {
 			url: this.checkUpdateScript,
 			dataType: "json",
 			success: function (result) {
-				if (result && result.update) {
-					if (system.codeupdate < result.update) {
+				if (result && result.tag_name) {
+					var update = result.created_at.substr(0,10).replace(/-/g,"");
+					var version = result.tag_name;
+					if ($.inArray(version, system.config.ignoreVersion)!=-1) {
+						return;
+					}
+					if (system.codeupdate < update) {
 						$("#area-update-infos").show();
-						$("#msg-updateInfos").html(result.update + " -> " + result.infos);
+						$("#msg-updateInfos").html(update + " -> " + result.name);
+						var content = $("<div/>");
+						var html = result.body.replace(/\r\n/g,"<br/>");
+
+						var toolbar = $("<div style='text-align:right;'/>").appendTo(content);
+						$('<a href="https://github.com/ronggang/transmission-web-control/releases/latest" target="_blank" class="easyui-linkbutton" data-options="iconCls:\'iconfont tr-icon-github\'"/>').html(result.name + " ("+update+")").appendTo(toolbar).linkbutton();
+						$("<span/>").html(" ").appendTo(toolbar);
+						$('<a href="https://github.com/ronggang/transmission-web-control/wiki" target="_blank" class="easyui-linkbutton" data-options="iconCls:\'iconfont tr-icon-help\'"/>').html(system.lang["public"]["text-how-to-update"]).appendTo(toolbar).linkbutton();
+						$("<span/>").html(" ").appendTo(toolbar);
+						$('<button onclick="javascript:system.addIgnoreVersion(\''+version+'\');" class="easyui-linkbutton" data-options="iconCls:\'iconfont tr-icon-cancel-checked\'"/>').html(system.lang["public"]["text-ignore-this-version"]).appendTo(toolbar).linkbutton();
+						$("<hr/>").appendTo(content);
+						$("<div/>").html(html).appendTo(content);
+
+						$('#button-download-update').webuiPopover({
+							content: content.html(),
+							backdrop: true
+						});
 					} else {
 						$("#area-update-infos").hide();
 					}
 				}
 			}
 		});
+	},
+	addIgnoreVersion: function(version) {
+		if ($.inArray(version, system.config.ignoreVersion)==-1) {
+			this.config.ignoreVersion.push(version);
+			this.saveConfig();
+		}
+		$('#button-download-update').webuiPopover("hide");
+		$("#area-update-infos").hide();
 	},
 	// Set the language to reload the page		
 	changeLanguages: function (lang) {
@@ -2544,12 +3027,19 @@ var system = {
 	setStorageData: function (key, value) {
 		window.localStorage[key] = value;
 	},
-	// Opens the specified template window		
+	/**
+	 * Opens the specified template window
+	 * 打开指定的模板
+	 * @param config 指定参数
+	 * 	type: 0 窗口，1 tooltip；默认为 0
+	 */
 	openDialogFromTemplate: function (config) {
 		var defaultConfig = {
 			id: null,
 			options: null,
-			datas: null
+			datas: null,
+			// 0 窗口，1 tooltip
+			type: 0
 		};
 		config = $.extend(true, defaultConfig, config);
 
@@ -2561,32 +3051,68 @@ var system = {
 
 		var dialog = $("#" + dialogId);
 		if (dialog.length) {
-			dialog.dialog("open");
 			if (datas) {
 				$.each(datas, function (key, value) {
 					dialog.data(key, value);
 				});
 			}
 
-
-			dialog.dialog({
-				content: system.templates[dialogId]
-			});
-
-			return;
+			if (config.type==0 && dialog.attr("type")==config.type) {
+				dialog.dialog("open");
+				dialog.dialog({
+					content: system.templates[dialogId]
+				});
+				return;
+			} else {
+				if (system.popoverCount!=0) {
+					setTimeout(function(){
+						system.openDialogFromTemplate(config);
+					}, 350);
+					return;
+				}
+				dialog.remove();
+			}
 		}
+
 		var defaultOptions = {
 			title: "",
 			width: 100,
 			height: 100,
 			resizable: false,
 			cache: true,
-			content: "loading...",
+			content: system.lang.dialog["system-config"].loading,
 			modal: true
 		};
 		options = $.extend(true, defaultOptions, options);
 
-		$("<div/>").attr("id", dialogId).appendTo(document.body).dialog(options);
+		dialog = $("<div/>").attr({
+			"id": dialogId,
+			"type": config.type
+		}).appendTo(document.body);
+		if (config.type==0) {
+			dialog.dialog(options);
+		} else {
+			dialog.css({
+				width: options.width,
+				height: options.height
+			}).data("popoverSource", config.source);
+
+			$(config.source).webuiPopover({
+				url: '#' + dialogId, 
+				width: options.width, 
+				height: options.height -18,
+				padding: false,
+				onHide: function(e) {
+					$(config.source).webuiPopover("destroy");
+					$("#" + dialogId).remove();
+					$(e).remove();
+					system.popoverCount--;
+				},
+				onShow: function() {
+					system.popoverCount++;
+				}
+			});
+		}
 
 		$.get(system.rootPath + "template/" + dialogId + ".html?time=" + (new Date()), function (data) {
 			system.templates[dialogId] = data;
@@ -2596,9 +3122,15 @@ var system = {
 				});
 			}
 
-			$("#" + dialogId).dialog({
-				content: data
-			});
+			if (config.type==0) {
+				$("#" + dialogId).dialog({
+					content: data
+				});
+			} else {
+				dialog.html(data);
+				$.parser.parse("#" + dialogId);
+				$(config.source).webuiPopover("show");
+			}
 		});
 	},
 	// Debugging information		
@@ -2633,6 +3165,14 @@ var system = {
 				}
 			});
 		}
+	},
+	/**
+	 * 根据指定的文本获取有效的树形目录Key
+	 */
+	getValidTreeKey: function(text) {
+		if (!text) return "";
+		var _key = this.B64.encode(text);
+		return _key.replace(/[+|\/|=]/g,"0");
 	}
 };
 
@@ -2675,5 +3215,15 @@ function pagerFilter(data) {
 	var start = (opts.pageNumber - 1) * parseInt(opts.pageSize);
 	var end = start + parseInt(opts.pageSize);
 	data.rows = (data.originalRows.slice(start, end));
+
+	if (buttons && buttons.length) {
+		for (var i=0;i<buttons.length;i++) {
+			var button = buttons[i];
+			if (button.id && button.title) {
+				$("#"+button.id, pager).attr("title", button.title);
+			}
+		}
+	}
+
 	return data;
 }

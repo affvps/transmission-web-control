@@ -29,6 +29,7 @@ transmission.torrents = {
 	isRecentlyActive: false,
 	// New torrents
 	newIds: new Array(),
+	btItems: [],
 	getallids: function(callback, ids, moreFields) {
 		var tmp = this.fields.base;
 		if (this.loadSimpleInfo && this.all)
@@ -38,7 +39,7 @@ transmission.torrents = {
 		if ($.isArray(moreFields)) {
 			$.unique($.merge(fields, moreFields));
 		}
-		var arguments = {
+		var args = {
 			fields: fields
 		};
 
@@ -46,17 +47,17 @@ transmission.torrents = {
 		this.isRecentlyActive = false;
 		// If it has been acquired
 		if (this.all && ids == undefined) {
-			arguments["ids"] = "recently-active";
+			args["ids"] = "recently-active";
 			this.isRecentlyActive = true;
 		} else if (ids) {
-			arguments["ids"] = ids;
+			args["ids"] = ids;
 		}
 		if (!this.all) {
 			this.all = {};
 		}
 		transmission.exec({
 			method: "torrent-get",
-			arguments: arguments
+			arguments: args
 		}, function(data) {
 			if (data.result == "success") {
 				transmission.torrents.newIds.length = 0;
@@ -88,6 +89,7 @@ transmission.torrents = {
 		this.error = new Array();
 		// With Warnings
 		this.warning = new Array();
+		this.btItems = new Array();
 		// All download directories used by current torrents
 		transmission.downloadDirs = new Array();
 
@@ -151,15 +153,12 @@ transmission.torrents = {
 
 			// Time left
 			if (item.rateDownload > 0 && item.leftUntilDone > 0) {
-				item["remainingTime"] = getTotalTime(item.leftUntilDone / item.rateDownload * 1000);
-				item["remainingTimeRaw"] = Math.floor(item.leftUntilDone / item.rateDownload * 1000);
+				item["remainingTime"] = Math.floor(item.leftUntilDone / item.rateDownload * 1000);
 			} else if (item.rateDownload == 0 && item.leftUntilDone == 0 && item.totalSize != 0) {
 				item["remainingTime"] = 0;
-				item["remainingTimeRaw"] = 0;
 			} else {
-				item["remainingTime"] = "∞";
 				// ~100 years
-				item["remainingTimeRaw"] = 3153600000000;
+				item["remainingTime"] = 3153600000000;
 			}
 
 
@@ -193,14 +192,17 @@ transmission.torrents = {
 
 			if (transmission.options.getFolders) {
 				if (item.downloadDir) {
-					var folder = item.downloadDir.split("/");
+					// 统一使用 / 来分隔目录
+					var folder = item.downloadDir.replace(/\\/g,"/").split("/");
 					var folderkey = "folders-";
 					for (var i in folder) {
 						var text = folder[i];
 						if (text == "") {
 							continue;
 						}
-						folderkey += B64.encode(text);
+						var key = B64.encode(text);
+						// 去除特殊字符
+						folderkey += key.replace(/[+|\/|=]/g,"0");
 						var node = this.folders[folderkey];
 						if (!node) {
 							node = {
@@ -255,7 +257,7 @@ transmission.torrents = {
 						torrents: new Array(),
 						size: 0,
 						connected: true,
-						isBT: (trackerStats.length>1)
+						isBT: (trackerStats.length>5)
 					};
 					tracker = transmission.trackers[id];
 				}
@@ -286,6 +288,11 @@ transmission.torrents = {
 					trackers.push(name);
 				}
 			}
+
+			if (trackerStats.length>5) {
+				this.btItems.push(item);
+			}
+
 			if (haveWarning) {
 				// 设置下次更新时间
 				if (!item["nextAnnounceTime"])
