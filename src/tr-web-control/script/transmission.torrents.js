@@ -16,8 +16,8 @@ transmission.torrents = {
 	pausedTorrentCount: 0,
 	fields: {
 		base: "id,name,status,hashString,totalSize,percentDone,addedDate,trackerStats,leftUntilDone,rateDownload,rateUpload,recheckProgress" + ",rateDownload,rateUpload,peersGettingFromUs,peersSendingToUs,uploadRatio,uploadedEver,downloadedEver,downloadDir,error,errorString,doneDate,queuePosition,activityDate",
-		status: "id,status,percentDone,trackerStats,leftUntilDone,rateDownload,rateUpload" + ",rateDownload,rateUpload,peersGettingFromUs,peersSendingToUs,uploadRatio,uploadedEver,downloadedEver,error,errorString,doneDate,queuePosition,activityDate",
-		config: "downloadLimit,downloadLimited,peer-limit,seedIdleLimit,seedIdleMode,seedRatioLimit,seedRatioMode,uploadLimit,uploadLimited"
+		status: "id,name,status,totalSize,percentDone,trackerStats,leftUntilDone,rateDownload,rateUpload,recheckProgress" + ",rateDownload,rateUpload,peersGettingFromUs,peersSendingToUs,uploadRatio,uploadedEver,downloadedEver,error,errorString,doneDate,queuePosition,activityDate",
+		config: "id,name,downloadLimit,downloadLimited,peer-limit,seedIdleLimit,seedIdleMode,seedRatioLimit,seedRatioMode,uploadLimit,uploadLimited"
 	},
 	// List of all the torrents that have been acquired
 	datas: {},
@@ -91,7 +91,9 @@ transmission.torrents = {
 		this.warning = new Array();
 		this.btItems = new Array();
 		// All download directories used by current torrents
-		transmission.downloadDirs = new Array();
+		if (transmission.downloadDirs == undefined){
+			transmission.downloadDirs = new Array();
+		}
 
 		var _Status = transmission._status;
 		this.status = {};
@@ -137,9 +139,12 @@ transmission.torrents = {
 				this.newIds.push(item.id);
 			}
 			item = $.extend(this.all[item.id], item);
+			// 没有活动数据时，将分享率标记为 -1
 			if (item.uploadedEver == 0 && item.downloadedEver == 0) {
-				item.uploadRatio = "∞";
+				item.uploadRatio = -1;
 			}
+			// 转为数值
+			item.uploadRatio = parseFloat(item.uploadRatio);
 			item.infoIsLoading = false;
 			var type = this.status[item.status];
 			this.addTracker(item);
@@ -232,19 +237,19 @@ transmission.torrents = {
 	},
 	addTracker: function(item) {
 		var trackerStats = item.trackerStats;
-		var haveWarning = false;
 		var trackers = [];
 
 		item.leecherCount = 0;
 		item.seederCount = 0;
 
 		if (trackerStats.length > 0) {
+			var warnings = [];
 			for (var index in trackerStats) {
 				var trackerInfo = trackerStats[index];
 				var lastResult = trackerInfo.lastAnnounceResult.toLowerCase();
 				var hostName = trackerInfo.host.getHostName();
 				var trackerUrl = hostName.split(".");
-				if ($.inArray(trackerUrl[0], "www,tracker".split(",")) != -1) {
+				if ($.inArray(trackerUrl[0], "www,tracker,announce".split(",")) != -1) {
 					trackerUrl.shift();
 				}
 
@@ -268,8 +273,7 @@ transmission.torrents = {
 
 				// 判断当前tracker状态
 				if (!trackerInfo.lastAnnounceSucceeded && trackerInfo.announceState != transmission._trackerStatus.inactive) {
-					haveWarning = true;
-					item["warning"] = trackerInfo.lastAnnounceResult;
+					warnings.push(trackerInfo.lastAnnounceResult);
 
 					if (lastResult == "could not connect to tracker") {
 						tracker.connected = false;
@@ -293,7 +297,12 @@ transmission.torrents = {
 				this.btItems.push(item);
 			}
 
-			if (haveWarning) {
+			if (warnings.length == trackerStats.length) {
+				if ((warnings.join(";")).replace(/;/g,"") == ""){
+					item["warning"] = "";
+				} else {
+					item["warning"] = warnings.join(";");
+				}
 				// 设置下次更新时间
 				if (!item["nextAnnounceTime"])
 					item["nextAnnounceTime"] = trackerInfo.nextAnnounceTime;
@@ -483,5 +492,49 @@ transmission.torrents = {
 				}
 			}, result[index].ids);
 		}
+	},
+	
+	// 获取磁力链接
+	getMagnetLink: function(ids, callback){
+		var result = "";
+		// is single number
+		if(ids.constructor.name != "Array")
+			ids = [ids];
+		if(ids.length == 0) {
+			if(callback) callback(result);
+			return;
+		}
+		// 跳过己获取的
+		var req_list = [];
+		for(var id in ids){
+			id = ids[id];
+			if (!this.all[id]) continue;
+			if (!this.all[id].magnetLink)
+				req_list.push(id)
+			else
+				result += this.all[id].magnetLink + "\n";
+		}
+		
+		if(req_list.length == 0){
+			if(callback) callback(result.trim());
+			return;
+		}
+
+		transmission.exec({
+			method: "torrent-get",
+			arguments: {
+				fields: [ "id", "magnetLink" ],
+				ids: req_list
+			}
+		}, function(data) {
+			if (data.result == "success") {
+				for(var item in data.arguments.torrents){
+					item = data.arguments.torrents[item];
+					transmission.torrents.all[item.id].magnetLink = item.magnetLink;
+					result += item.magnetLink + "\n";
+				}
+				if(callback) callback(result.trim());
+			}
+		});
 	}
 };
